@@ -192,15 +192,20 @@ hr {
 <hr/>
 
 <p>@ Author: Weigardh, A<br/>
-@ File: PA1_template.R<br/>
+@ File: PA1_template.Rmd 
 <br></p>
+
+<hr/>
 
 <h4>Summary</h4>
 
 <p>This document describes the procedure to solve the <em>Peer Assessment 1</em> assignment in the course <em>Reproducible Research</em>.<br/>
 The task is to perform various statistics on dataset of personal movement activity.
 <br><br/>
-In order to run the code below the Activity monitoring data dataset must be downloaded and unzipped (<a href="http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip">http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip</a>) and put in the working directory. Unless this is the case, we try to download it below. The dataset consist of data from a personal activity monitoring device. This device collects data at five minute intervals through out the day over a two month period.
+In order to run the code below the Activity monitoring data dataset must be (<a href="http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip">downloaded</a>), unzipped and put in the working directory. Unless this is the case, we try to download it below. Furthermore, the lattice library is also used. Unless already installed, it will be done.<br/>
+<br>
+The dataset consist of data from a personal activity monitoring device. This device collects data at five minute intervals through out the day over a two month period. There is some missing data that we will account for below.
+<br>
 <br></p>
 
 <hr/>
@@ -235,7 +240,7 @@ Start by downloading and unzipping the data if needed.</p>
 <h2>Average Total Number of Steps Taken Per Day</h2>
 
 <p><br>
-We want to calculate the mean number of steps for each day in the period 2012-10-02 - 2012-11-08.<br/>
+We want to calculate the mean number of steps for each day during the period 2012-10-02 to 2012-11-08.<br/>
 First we subset the data, ignoring the incomplete cases where steps is not given. Later we aggregate steps per day into a new data frame, <code>stepsPerDay</code>.</p>
 
 <pre><code class="r">completeCases &lt;- data[complete.cases(data),]
@@ -264,7 +269,7 @@ Make a histogram over the amount of steps made each day and perform some annotat
 <pre><code>## [1] 10765
 </code></pre>
 
-<p>We see that the values are very equal to each other.
+<p>We see that the values are very equal to each other (10766 and 10765).
 <br>
 <br></p>
 
@@ -273,7 +278,7 @@ Make a histogram over the amount of steps made each day and perform some annotat
 <h2>Average Daily Activity Pattern</h2>
 
 <p><br>
-We now want to make time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis). One can start by creating a variable containing the average for each interval</p>
+We now want to make time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis). One can start by creating a variable containing the average for each interval.</p>
 
 <pre><code class="r">stepsPerInterval &lt;- aggregate(steps ~ interval, data = completeCases, FUN = mean)
 </code></pre>
@@ -295,7 +300,7 @@ stepsPerInterval[stepsPerInterval$steps==max(stepsPerInterval$steps),]$interval
 <pre><code>## [1] 835
 </code></pre>
 
-<p>At this interval the value equals 206.1698.
+<p>At this interval (the <strong>835th</strong> interval ) the value equals 206.1698.
 <br>
 <br></p>
 
@@ -312,6 +317,8 @@ When creating the data frame <code>completeCases</code>, we excluded the steps w
 <pre><code>## [1] 2304
 </code></pre>
 
+<p>These 2304 missing observations constitute about 13% of the entire dataset (i.e. 8 days of data is missing).</p>
+
 <p><br>
 <strong>Assigning new values</strong><br/>
 We now want to assign values for all NAs. The strategy is very simple. We replace all NA intervals with the average value of the observed intervals we found earlier (that can be found in the data frame <code>stepsPerInterval</code>). We round the number so that we we get a discrete amount of steps, which is consistent with what reality dictates.</p>
@@ -326,7 +333,7 @@ head(table(data$steps))
 </code></pre>
 
 <p><br>
-By running the code above we see that the observation zero is made 11014 times. This is about 72% of the observations from <code>completeCases</code> and 63% from the entire dataset, including NAs. We thus expect to replace the missing with many zeros but also some other values that we have experienced before (and a few new ones). This will happen due to that we use the round function. We assign the new values below to the data frame <code>newDataSet</code>. For a non-discrete case (where one can observe e.g. 1.414 steps), remove the round command from the code.</p>
+By running the code above we see that the observation zero is made 11014 times. This is about 72% of the observations from <code>completeCases</code> and 63% from the entire dataset, including NAs. We thus expect to replace the missing with many zeros but also some other values that we have experienced before (and a few new ones). This will happen due to that we use the round function. We assign the new values below to the data frame <code>newDataSet</code>. For a non-discrete case (where one can observe e.g. 1.414 steps), remove the round function from the code.</p>
 
 <pre><code class="r">newDataSet &lt;- data
 for (i in 1:length(newDataSet$steps)){
@@ -346,14 +353,13 @@ for (i in 1:length(newDataSet$steps)){
 ## 11350   159    96    91    41    41
 </code></pre>
 
-<p>In the new dataset, it has been added a lot of zeros, ones, twos etc. In reality we would probably have experienced a larger share of zeros (and a smaller share of ones, twos, &hellip;) if the missing data was retrived.</p>
+<p>In the new dataset, it has been added a lot of zeros, ones, twos etc. In reality we would probably have experienced a larger share of zeros (and a smaller share of ones, twos, &hellip;) if the missing data could be retrieved.</p>
 
 <p><br>
 <strong>Making new histogram</strong><br/>
-We now repeat the earlier steps to make a new histrogram including the missing data. Calculate the mean and median for the total number of steps taken each day and plot the result.</p>
+We now repeat the earlier steps to make a new histogram including the missing data. Calculate the mean and median for the total number of steps taken each day and plot the result.</p>
 
 <pre><code class="r">newDataSet$date &lt;- as.Date(newDataSet$date, &quot;%Y-%m-%d&quot;)
-completeCasesNewData &lt;- newDataSet[complete.cases(newDataSet),]
 stepsPerDayNewData &lt;- aggregate(steps ~ date, data = newDataSet, FUN = sum)
 </code></pre>
 
@@ -381,9 +387,9 @@ Plot the histogram in another color this time.</p>
 
 <p><br>
 <strong>Comparison of results</strong><br/>
-By taking this approach we get a very similar distribution compared to what we had before. The mean is the same while the median went down a bit (-3) . This should not come as a surprise since we add rounded averages to the dataset. By adding non-discrete values we would get even more closer to the old median. The impact on our statistics is thus very small after filling in missing values. We can also, by examining the figure below, see that the daily activity pattern is similar under our method.</p>
+By taking this approach we get a very similar distribution compared to what we had before. The mean is the same (10766) while the median (10762) went down a bit (-3) . This should not come as a surprise since we add rounded averages to the dataset. By adding non-discrete values we would get even more closer to the old median. The impact on our statistics is thus very small after filling in missing values. We can also, by examining the figure below, see that the daily activity pattern is similar under our method.</p>
 
-<pre><code class="r">stepsPerIntervalNewData &lt;- aggregate(steps ~ interval, data = completeCasesNewData, FUN = mean)
+<pre><code class="r">stepsPerIntervalNewData &lt;- aggregate(steps ~ interval, data = newDataSet, FUN = mean)
 plot(stepsPerInterval, type = &quot;l&quot;, xlab = &quot;Interval&quot;, ylab=&quot;Average number of steps&quot;, main = &quot;Daily Activity Pattern&quot;)
 lines(stepsPerIntervalNewData, col = &quot;green&quot;, type = &quot;b&quot;, lty = 2)
 legend(&quot;topright&quot;, legend = c(&quot;Without missing values&quot;,&quot;With missing values&quot;), col = c(&quot;black&quot;,&quot;green&quot;), lwd = 1, lty = c(1,NA), pch = c(NA,1), bty=&#39;n&#39;, cex = 0.9)                                                                                                            
@@ -420,7 +426,12 @@ We now make a panel plot of weekdays and weekends to spot any differences. We us
 <pre><code class="r">if (!require(lattice)){ 
         install.packages(&quot;lattice&quot;) 
 } 
-library(lattice)
+</code></pre>
+
+<pre><code>## Loading required package: lattice
+</code></pre>
+
+<pre><code class="r">library(lattice)
 xyplot(steps ~ interval | day, data = weekdayData, type = &quot;l&quot;, main = &quot;Activity Patterns&quot;, xlab = &quot;Interval&quot;, ylab = &quot;Average number of steps&quot;, layout = c(1, 2))
 </code></pre>
 
@@ -429,9 +440,10 @@ xyplot(steps ~ interval | day, data = weekdayData, type = &quot;l&quot;, main = 
 <p><br>
 We can see that weekdays has a single peak while weekends are more constant over the entire day. This could imply that we&#39;re more active earlier during the days in weekdays compared to weekends. This makes sense considering peoples work habits. </p>
 
-<h3>Version used</h3>
+<hr/>
 
-<p>The following version of R was used when creating this document.</p>
+<p><strong>Version used</strong><br/>
+The following version of R was used when creating this document.</p>
 
 <blockquote>
 <p>version
@@ -448,8 +460,8 @@ month          07<br/>
 day            10<br/>
 svn rev        66115<br/>
 language       R<br/>
-version.string R version 3.1.1 (2014-07-10)
-nickname       Sock it to Me    </p>
+version.string R version 3.1.1 (2014-07-10)<br/>
+nickname       Sock it to Me</p>
 </blockquote>
 
 </body>

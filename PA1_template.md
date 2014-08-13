@@ -2,16 +2,20 @@
 ******
 
 @ Author: Weigardh, A  
-@ File: PA1_template.R  
+@ File: PA1_template.Rmd 
 <br>
 
 
 
+******
 #### Summary
 This document describes the procedure to solve the *Peer Assessment 1* assignment in the course *Reproducible Research*.  
 The task is to perform various statistics on dataset of personal movement activity.
 <br>  
-In order to run the code below the Activity monitoring data dataset must be downloaded and unzipped (http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) and put in the working directory. Unless this is the case, we try to download it below. The dataset consist of data from a personal activity monitoring device. This device collects data at five minute intervals through out the day over a two month period.
+In order to run the code below the Activity monitoring data dataset must be ([downloaded](http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip)), unzipped and put in the working directory. Unless this is the case, we try to download it below. Furthermore, the lattice library is also used. Unless already installed, it will be done.  
+<br>
+The dataset consist of data from a personal activity monitoring device. This device collects data at five minute intervals through out the day over a two month period. There is some missing data that we will account for below.
+<br>
 <br>
 
 
@@ -44,10 +48,11 @@ data$date <- as.Date(data$date, "%Y-%m-%d")
 <br>
 
 
+
 ******
 ## Average Total Number of Steps Taken Per Day
 <br>
-We want to calculate the mean number of steps for each day in the period 2012-10-02 - 2012-11-08.   
+We want to calculate the mean number of steps for each day during the period 2012-10-02 to 2012-11-08.   
 First we subset the data, ignoring the incomplete cases where steps is not given. Later we aggregate steps per day into a new data frame, `stepsPerDay`.
 
 ```r
@@ -81,15 +86,16 @@ median(stepsPerDay$steps)
 ```
 ## [1] 10765
 ```
-We see that the values are very equal to each other.
+We see that the values are very equal to each other (10766 and 10765).
 <br>
 <br>
+
 
 
 ******
 ## Average Daily Activity Pattern
 <br>
-We now want to make time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis). One can start by creating a variable containing the average for each interval
+We now want to make time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis). One can start by creating a variable containing the average for each interval.
 
 
 ```r
@@ -115,7 +121,7 @@ stepsPerInterval[stepsPerInterval$steps==max(stepsPerInterval$steps),]$interval
 ```
 ## [1] 835
 ```
-At this interval the value equals 206.1698.
+At this interval (the **835th** interval ) the value equals 206.1698.
 <br>
 <br>
 
@@ -133,6 +139,7 @@ length(data[(is.na(data$steps)),]$steps)
 ```
 ## [1] 2304
 ```
+These 2304 missing observations constitute about 13% of the entire dataset (i.e. 8 days of data is missing).
 
 <br>
 **Assigning new values**  
@@ -151,7 +158,7 @@ head(table(data$steps))
 ```
 
 <br>
-By running the code above we see that the observation zero is made 11014 times. This is about 72% of the observations from `completeCases` and 63% from the entire dataset, including NAs. We thus expect to replace the missing with many zeros but also some other values that we have experienced before (and a few new ones). This will happen due to that we use the round function. We assign the new values below to the data frame `newDataSet`. For a non-discrete case (where one can observe e.g. 1.414 steps), remove the round command from the code.
+By running the code above we see that the observation zero is made 11014 times. This is about 72% of the observations from `completeCases` and 63% from the entire dataset, including NAs. We thus expect to replace the missing with many zeros but also some other values that we have experienced before (and a few new ones). This will happen due to that we use the round function. We assign the new values below to the data frame `newDataSet`. For a non-discrete case (where one can observe e.g. 1.414 steps), remove the round function from the code.
 
 
 ```r
@@ -174,15 +181,14 @@ head(table(newDataSet$steps))
 ##     0     1     2     3     4     5 
 ## 11350   159    96    91    41    41
 ```
-In the new dataset, it has been added a lot of zeros, ones, twos etc. In reality we would probably have experienced a larger share of zeros (and a smaller share of ones, twos, ...) if the missing data was retrived.
+In the new dataset, it has been added a lot of zeros, ones, twos etc. In reality we would probably have experienced a larger share of zeros (and a smaller share of ones, twos, ...) if the missing data could be retrieved.
 
 <br>
 **Making new histogram**  
-We now repeat the earlier steps to make a new histrogram including the missing data. Calculate the mean and median for the total number of steps taken each day and plot the result.
+We now repeat the earlier steps to make a new histogram including the missing data. Calculate the mean and median for the total number of steps taken each day and plot the result.
 
 ```r
 newDataSet$date <- as.Date(newDataSet$date, "%Y-%m-%d")
-completeCasesNewData <- newDataSet[complete.cases(newDataSet),]
 stepsPerDayNewData <- aggregate(steps ~ date, data = newDataSet, FUN = sum)
 ```
 
@@ -215,10 +221,10 @@ median(stepsPerDayNewData$steps)
 
 <br>
 **Comparison of results**  
-By taking this approach we get a very similar distribution compared to what we had before. The mean is the same while the median went down a bit (-3) . This should not come as a surprise since we add rounded averages to the dataset. By adding non-discrete values we would get even more closer to the old median. The impact on our statistics is thus very small after filling in missing values. We can also, by examining the figure below, see that the daily activity pattern is similar under our method.
+By taking this approach we get a very similar distribution compared to what we had before. The mean is the same (10766) while the median (10762) went down a bit (-3) . This should not come as a surprise since we add rounded averages to the dataset. By adding non-discrete values we would get even more closer to the old median. The impact on our statistics is thus very small after filling in missing values. We can also, by examining the figure below, see that the daily activity pattern is similar under our method.
 
 ```r
-stepsPerIntervalNewData <- aggregate(steps ~ interval, data = completeCasesNewData, FUN = mean)
+stepsPerIntervalNewData <- aggregate(steps ~ interval, data = newDataSet, FUN = mean)
 plot(stepsPerInterval, type = "l", xlab = "Interval", ylab="Average number of steps", main = "Daily Activity Pattern")
 lines(stepsPerIntervalNewData, col = "green", type = "b", lty = 2)
 legend("topright", legend = c("Without missing values","With missing values"), col = c("black","green"), lwd = 1, lty = c(1,NA), pch = c(NA,1), bty='n', cex = 0.9)                                                                                                            
@@ -227,6 +233,7 @@ legend("topright", legend = c("Without missing values","With missing values"), c
 ![plot of chunk unnamed-chunk-17](figure/unnamed-chunk-17.png) 
 <br>
 <br>
+
 
 
 ******
@@ -259,6 +266,13 @@ We now make a panel plot of weekdays and weekends to spot any differences. We us
 if (!require(lattice)){ 
         install.packages("lattice") 
 } 
+```
+
+```
+## Loading required package: lattice
+```
+
+```r
 library(lattice)
 xyplot(steps ~ interval | day, data = weekdayData, type = "l", main = "Activity Patterns", xlab = "Interval", ylab = "Average number of steps", layout = c(1, 2))
 ```
@@ -268,8 +282,8 @@ xyplot(steps ~ interval | day, data = weekdayData, type = "l", main = "Activity 
 <br>
 We can see that weekdays has a single peak while weekends are more constant over the entire day. This could imply that we're more active earlier during the days in weekdays compared to weekends. This makes sense considering peoples work habits. 
 
-
-### Version used
+******
+**Version used**  
 The following version of R was used when creating this document.
 
 > version
@@ -286,5 +300,5 @@ month          07
 day            10                          
 svn rev        66115                       
 language       R                           
-version.string R version 3.1.1 (2014-07-10)
-nickname       Sock it to Me    
+version.string R version 3.1.1 (2014-07-10)  
+nickname       Sock it to Me
